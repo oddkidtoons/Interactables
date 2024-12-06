@@ -40,6 +40,9 @@ namespace QandAPuzzle
 
         void Start()
         {
+            questionText.gameObject.SetActive(false);
+
+
             // Initialize timer
             timer = countDown ? timerDuration : 0;
             if (timerText != null)
@@ -47,7 +50,7 @@ namespace QandAPuzzle
                 UpdateTimerUI(); // Display initial timer value
             }
 
-            DisplayRandomQuestion();
+            //DisplayRandomQuestion();
         }
 
         void Update()
@@ -132,11 +135,13 @@ namespace QandAPuzzle
 
             if (questionText != null)
             {
+                questionText.gameObject.SetActive(true);
                 questionText.text = question;
             }
 
             if (answerText != null)
             {
+                answerText.gameObject.SetActive(true);
                 answerText.text = "";
             }
 
@@ -258,6 +263,7 @@ namespace QandAPuzzle
 
         public (string, string) GetRandomQuestion()
         {
+    
             int index = Random.Range(0, questions.Length);
             string question = questions[index];
             currentAnswer = answers[index];
