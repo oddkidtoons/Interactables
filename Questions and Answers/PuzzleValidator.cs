@@ -7,36 +7,39 @@ namespace QandAPuzzle
     {
         public PlatformSpawner platformSpawner; // Reference to PlatformSpawner
         public QuestionManager questionManager; // Reference to QuestionManager
-        public UnityEvent CompletionEvent; // Event triggered when the puzzle is complete
-         private bool isPuzzleComplete = false;
+        public UnityEvent CompletionEvent;      // Event triggered when the puzzle is complete
+        private bool isPuzzleComplete = false;
 
         private void Start()
         {
-            if (platformSpawner == null){
-                 Debug.LogError("PlatformSpawner is not assigned in PuzzleValidator.");
+            if (platformSpawner == null)
+            {
+                Debug.LogError("PlatformSpawner is not assigned in PuzzleValidator.");
                 platformSpawner = FindObjectOfType<PlatformSpawner>();
                 if (platformSpawner == null)
-        {
-            Debug.LogError("PlatformSpawner not found in the scene.");
-        }
+                {
+                    Debug.LogError("PlatformSpawner not found in the scene.");
                 }
+            }
 
-            if (questionManager == null){
-                 Debug.LogError("QuestionManager is not assigned in PuzzleValidator.");
+            if (questionManager == null)
+            {
+                Debug.LogError("QuestionManager is not assigned in PuzzleValidator.");
                 questionManager = FindObjectOfType<QuestionManager>();
                 if (questionManager == null)
-{
-    Debug.LogError("QuestionManager not found!");
-}
+                {
+                    Debug.LogError("QuestionManager not found!");
                 }
+            }
         }
 
         public void ValidateAnswer()
         {
-             if (isPuzzleComplete) 
-        {
-            return; // Prevent validation if the puzzle is already complete
-        }
+            if (isPuzzleComplete)
+            {
+                return; // Prevent validation if the puzzle is already complete
+            }
+
             // Debug log for initial validation state
             Debug.Log("Starting answer validation...");
             bool isCorrect = true;
@@ -65,8 +68,9 @@ namespace QandAPuzzle
             if (isCorrect)
             {
                 Debug.Log("Puzzle validated as correct! Triggering completion.");
-                questionManager.DisplayCompletion(); // Trigger the completion UI
-                CompletionEvent?.Invoke(); // Invoke the completion event if assigned
+                questionManager.CompletePuzzle();  // Use CompletePuzzle instead of DisplayCompletion
+                CompletionEvent?.Invoke();        // Invoke the completion event if assigned
+                isPuzzleComplete = true;          // Mark the puzzle as complete
             }
             else
             {
