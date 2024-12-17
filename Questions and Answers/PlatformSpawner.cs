@@ -9,7 +9,6 @@ namespace QandAPuzzle
         public Transform spawnArea;  // The area in which to spawn the platforms
         public List<Platform> SpawnedPlatforms { get; private set; }  // Store the spawned platforms
 
-        // Public spacing variable for setting the platform distance in the Inspector
         public float platformSpacing = 2f;  // Distance between platforms
 
         public PuzzleValidator puzzleValidator;  // Reference to the PuzzleValidator
@@ -19,15 +18,22 @@ namespace QandAPuzzle
             SpawnedPlatforms = new List<Platform>();
 
             // Clear any previously spawned platforms
-            foreach (Transform child in spawnArea)
-            {
-                Destroy(child.gameObject);
-            }
+            DespawnPlatforms();
 
-            // Spawn the platforms based on the number of letters in the answer
+            // Calculate the starting offset to center the platforms
+            float totalWidth = (numberOfPlatforms - 1) * platformSpacing;  // Total width of the platforms
+            float startX = -totalWidth / 2;  // Center the platforms around the spawnArea
+
+            // Spawn the platforms
             for (int i = 0; i < numberOfPlatforms; i++)
             {
-                GameObject platformObj = Instantiate(platformPrefab, spawnArea.position + new Vector3(i * platformSpacing, 0, 0), Quaternion.identity);
+                float xOffset = startX + (i * platformSpacing);  // Calculate the x-position for each platform
+
+                // Calculate the spawn position and apply the rotation to face the Z-axis of the spawn area
+                Vector3 spawnPosition = spawnArea.position + spawnArea.right * xOffset;
+                Quaternion spawnRotation = Quaternion.LookRotation(spawnArea.forward, Vector3.up);
+
+                GameObject platformObj = Instantiate(platformPrefab, spawnPosition, spawnRotation);
                 platformObj.transform.parent = spawnArea;  // Set the platform as a child of the spawn area
                 Platform platform = platformObj.GetComponent<Platform>();
 
@@ -65,6 +71,19 @@ namespace QandAPuzzle
             {
                 puzzleValidator.ValidateAnswer();  // Trigger the validation after all platforms are correct
             }
+        }
+
+        // New Method to Despawn Platforms
+        public void DespawnPlatforms()
+        {
+            if (spawnArea == null) return;
+
+            foreach (Transform child in spawnArea)
+            {
+                Destroy(child.gameObject);
+            }
+
+            SpawnedPlatforms?.Clear();
         }
     }
 }

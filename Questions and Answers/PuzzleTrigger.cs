@@ -8,13 +8,16 @@ namespace QandAPuzzle
         public QuestionManager questionManager;  // Reference to the QuestionManager
         public PlatformSpawner platformSpawner;  // Reference to the PlatformSpawner
         public UnityEvent OnPuzzleTriggered;     // Event triggered when the puzzle starts
+        public UnityEvent OnTriggerReset;        // Event triggered when the trigger is reset
+
         public bool startTimerOnTrigger = true;  // Option to start the timer when triggered
-public string triggerTag;
+        public string triggerTag;                // Tag to identify the player
+
         private bool puzzleTriggered = false;    // Flag to check if the puzzle has already been triggered
 
         private void OnTriggerEnter(Collider other)
         {
-            // Check if the player is the one entering the trigger area and if the puzzle hasn't been triggered yet
+            // Check if the player enters the trigger area and the puzzle hasn't been triggered yet
             if (other.CompareTag(triggerTag) && !puzzleTriggered)
             {
                 Debug.Log("Player has entered the trigger area!");
@@ -26,13 +29,13 @@ public string triggerTag;
                 string currentAnswer = questionManager.GetCurrentAnswer();
                 platformSpawner.SpawnPlatforms(currentAnswer.Length, currentAnswer);
 
-                // Start the timer if the option is enabled
+                // Start the timer if enabled
                 if (startTimerOnTrigger)
                 {
                     questionManager.StartTimer();
                 }
 
-                // Trigger any additional events
+                // Trigger additional events
                 OnPuzzleTriggered?.Invoke();
 
                 // Set the flag to true to prevent further triggering
@@ -40,11 +43,14 @@ public string triggerTag;
             }
         }
 
-        // Optionally, you can reset the puzzleTriggered flag in case you want to re-enable the trigger (e.g., between levels)
+        // Reset the trigger and allow the puzzle to be restarted
         public void ResetPuzzleTrigger()
         {
-            puzzleTriggered = false;
+            Debug.Log("Resetting Puzzle Trigger...");
+            puzzleTriggered = false; // Allow the trigger to be activated again
+
+            // Invoke the reset visual/event for player feedback
+            OnTriggerReset?.Invoke();
         }
     }
 }
-

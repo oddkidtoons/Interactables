@@ -1,13 +1,19 @@
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace QandAPuzzle
 {
     public class Letter : MonoBehaviour
     {
-        // Make this public or use SerializeField to expose it in the inspector
         [SerializeField] private char letter;
 
-        // Set the letter this object represents (you can still use this method)
+        // Event triggered before the object is destroyed
+        public UnityEvent OnBeforeDestroy;
+
+        // Delay before destroying the object (in seconds)
+        public float destroyDelay = 0f;
+
+        // Set the letter this object represents
         public void SetLetter(char letter)
         {
             this.letter = letter;
@@ -19,11 +25,27 @@ namespace QandAPuzzle
             return letter;
         }
 
-        // You can implement logic to handle when the letter is placed on a platform
+        // Handle when the letter is placed on a platform
         public void PlaceOnPlatform(Platform platform)
         {
-            platform.AssignLetter(letter);  // Assign the letter to the platform
+            platform.AssignLetter(letter);
+        }
+
+        // Destroy the game object with optional delay and event
+        public void DestroyLetter()
+        {
+            // Trigger the event if any listeners are attached
+            OnBeforeDestroy?.Invoke();
+
+            // Destroy the object with a delay
+            if (destroyDelay > 0f)
+            {
+                Destroy(gameObject, destroyDelay);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
     }
 }
-

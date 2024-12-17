@@ -13,44 +13,40 @@ namespace QandAPuzzle
         public TextMeshProUGUI questionText;
         public TextMeshProUGUI answerText;
         public TextMeshProUGUI completionText;
-        public TextMeshProUGUI scoreText;  // Reference to the Score UI Text
-        public TextMeshProUGUI timerText; // Reference to the Timer UI Text
+        public TextMeshProUGUI scoreText;
+        public TextMeshProUGUI timerText;
 
         private string currentAnswer;
 
         public UnityEvent OnCompletionEvent;
-        public UnityEvent OnTimerEnd;  // Event triggered when the timer ends
+        public UnityEvent OnTimerEnd;
+        public UnityEvent OnFailureEvent;
 
-        private bool isPuzzleComplete = false;  // Centralized completion state
-
-        // Public delays to adjust in the Inspector
+        public string failedText = "You Failed!";
         public float correctFeedbackDelay = 1f;
         public float correctFeedbackHideDelay = 2f;
         public float completionUIShowDelay = 1f;
         public float completionUIHideDelay = 2f;
+        public float scoreUIHideDelay = 2f;
+        public float timerUIHideDelay = 2f;
+        public float failureUIHideDelay = 2f;
+        public float resetDelay = 2f; // Delay before resetting the puzzle
 
         public PlatformSpawner platformSpawner;
         public ScoreManager scoreManager;
+        public PuzzleTrigger puzzleTrigger; // Reference to reset the trigger
 
-        // Timer variables
-        public bool countDown = true;           // Choose between counting down or counting up
-        public float timerDuration = 120f;     // Timer duration in seconds
-        private float timer;                   // Current timer value
-        private bool timerRunning = false;     // Tracks whether the timer is running
+        public bool countDown = true;
+        public float timerDuration = 120f;
+
+        private float timer;
+        private bool timerRunning = false;
+        private bool isPuzzleComplete = false;
 
         void Start()
         {
-            questionText.gameObject.SetActive(false);
-
-
-            // Initialize timer
-            timer = countDown ? timerDuration : 0;
-            if (timerText != null)
-            {
-                UpdateTimerUI(); // Display initial timer value
-            }
-
-            //DisplayRandomQuestion();
+            InitializeUI();
+            ResetTimer();
         }
 
         void Update()
@@ -61,7 +57,15 @@ namespace QandAPuzzle
             }
         }
 
-        // Timer logic
+        private void InitializeUI()
+        {
+            questionText?.gameObject.SetActive(false);
+            answerText?.gameObject.SetActive(false);
+            completionText?.gameObject.SetActive(false);
+            scoreText?.gameObject.SetActive(false);
+            timerText?.gameObject.SetActive(false);
+        }
+
         private void UpdateTimer()
         {
             if (countDown)
@@ -86,7 +90,6 @@ namespace QandAPuzzle
             UpdateTimerUI();
         }
 
-        // Updates the timer display
         private void UpdateTimerUI()
         {
             if (timerText != null)
@@ -94,34 +97,61 @@ namespace QandAPuzzle
                 int minutes = Mathf.FloorToInt(timer / 60);
                 int seconds = Mathf.FloorToInt(timer % 60);
                 timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+
+                if (countDown)
+                {
+                    if (timer <= timerDuration * 0.1f)
+                        timerText.color = Color.red;
+                    else if (timer <= timerDuration * 0.8f)
+                        timerText.color = Color.yellow;
+                    else
+                        timerText.color = Color.white;
+                }
             }
         }
 
-        // Event triggered when the timer ends
         private void TimerEnded()
         {
             timerRunning = false;
             Debug.Log("Timer ended!");
-            if (OnTimerEnd != null)
+            if (isPuzzleComplete)
+                return;
+
+            if (OnFailureEvent != null)
             {
-                Debug.Log("Triggering OnTimerEnd event.");
-                OnTimerEnd.Invoke(); // Trigger the timer end event
+                OnFailureEvent.Invoke();
+                ShowFailureUI();
+                StartCoroutine(ResetPuzzleAfterDelay());
             }
         }
 
-        // Start the timer
+        private IEnumerator ResetPuzzleAfterDelay()
+        {
+            yield return new WaitForSeconds(resetDelay);
+
+            Debug.Log("Resetting the puzzle...");
+            platformSpawner.SpawnedPlatforms.Clear(); // Clear platforms
+            InitializeUI();
+            ResetTimer();
+
+            // Reset the trigger so the player can interact with it again
+            if (puzzleTrigger != null)
+            {
+                puzzleTrigger.ResetPuzzleTrigger();
+            }
+        }
+
         public void StartTimer()
         {
             timerRunning = true;
+            timerText?.gameObject.SetActive(true);
         }
 
-        // Stop the timer
         public void StopTimer()
         {
             timerRunning = false;
         }
 
-        // Reset the timer
         public void ResetTimer()
         {
             timer = countDown ? timerDuration : 0;
@@ -133,34 +163,21 @@ namespace QandAPuzzle
         {
             var (question, _) = GetRandomQuestion();
 
-            if (questionText != null)
-            {
-                questionText.gameObject.SetActive(true);
-                questionText.text = question;
-            }
+            questionText?.gameObject.SetActive(true);
+            questionText.text = question;
 
-            if (answerText != null)
-            {
-                answerText.gameObject.SetActive(true);
-                answerText.text = "";
-            }
+            answerText?.gameObject.SetActive(true);
+            answerText.text = "";
 
-            if (completionText != null)
-            {
-                completionText.gameObject.SetActive(false); // Hide completion UI
-            }
-
-            isPuzzleComplete = false; // Reset the completion status when a new question is displayed
+            completionText?.gameObject.SetActive(false);
+            isPuzzleComplete = false;
         }
 
         public void DisplayAnswerFeedback(bool isCorrect)
         {
             if (isPuzzleComplete)
-            {
-                return; // If the puzzle is complete, do not show feedback again
-            }
+                return;
 
-            Debug.Log($"DisplayAnswerFeedback: {isCorrect}");
             if (answerText != null)
             {
                 StartCoroutine(ShowAnswerFeedback(isCorrect));
@@ -173,7 +190,7 @@ namespace QandAPuzzle
 
             if (isCorrect)
             {
-                questionText.gameObject.SetActive(false);
+                questionText?.gameObject.SetActive(false);
                 yield return new WaitForSeconds(correctFeedbackDelay);
                 answerText.text = "Correct!";
                 StartCoroutine(ClearAnswerFeedback(correctFeedbackHideDelay));
@@ -187,83 +204,80 @@ namespace QandAPuzzle
         private IEnumerator ClearAnswerFeedback(float delay)
         {
             yield return new WaitForSeconds(delay);
-            answerText.text = ""; // Clear the feedback
+            answerText.text = "";
         }
 
         public void CompletePuzzle()
         {
             if (isPuzzleComplete)
-            {
-                Debug.Log("Puzzle already complete. Skipping completion logic.");
                 return;
-            }
 
             Debug.Log("Completing puzzle...");
             isPuzzleComplete = true;
 
-            // Display completion UI and trigger completion events
+            StopTimer();
             StartCoroutine(ShowCompletionUI());
+            StartCoroutine(FlashTimerGreen());
+            StartCoroutine(HideScoreAfterDelay());
 
             scoreManager.IncreaseScore();
             UpdateScoreUI();
 
             if (OnCompletionEvent != null)
             {
-                Debug.Log("Triggering OnCompletionEvent.");
-                OnCompletionEvent.Invoke(); // Trigger external completion event
+                OnCompletionEvent.Invoke();
             }
         }
 
         private IEnumerator ShowCompletionUI()
         {
             yield return new WaitForSeconds(completionUIShowDelay);
+            completionText?.gameObject.SetActive(true);
+            completionText.text = "Complete!";
+            yield return new WaitForSeconds(completionUIHideDelay);
+            completionText?.gameObject.SetActive(false);
+        }
 
-            if (completionText != null)
+        private IEnumerator FlashTimerGreen()
+        {
+            if (timerText == null)
+                yield break;
+
+            for (int i = 0; i < 6; i++)
             {
-                completionText.gameObject.SetActive(true);
-                completionText.text = "Complete!";
-                Debug.Log($"Completion UI Active: {completionText.gameObject.activeSelf}");
+                timerText.color = i % 2 == 0 ? Color.green : Color.white;
+                yield return new WaitForSeconds(0.2f);
             }
 
-            yield return new WaitForSeconds(completionUIHideDelay);
+            timerText.color = Color.white;
+            yield return new WaitForSeconds(timerUIHideDelay);
+            timerText?.gameObject.SetActive(false);
+        }
 
-            if (completionText != null)
+        private IEnumerator HideScoreAfterDelay()
+        {
+            yield return new WaitForSeconds(scoreUIHideDelay);
+            scoreText?.gameObject.SetActive(false);
+        }
+
+        private void ShowFailureUI()
+        {
+            if (questionText != null)
             {
-                completionText.gameObject.SetActive(false);
-                Debug.Log("Completion UI Hidden.");
+                questionText.gameObject.SetActive(true);
+                questionText.text = failedText;
+                StartCoroutine(HideFailureUI());
             }
         }
 
-        public void CheckPuzzleCompletion()
+        private IEnumerator HideFailureUI()
         {
-            bool allPlatformsOccupied = true;
-            bool anyIncorrect = false;
-
-            foreach (var platform in platformSpawner.SpawnedPlatforms)
-            {
-                if (!platform.GetAssignedLetter().Equals(platform.GetExpectedLetter()))
-                {
-                    anyIncorrect = true;
-                }
-                if (platform.GetAssignedLetter() == '\0') // Empty letter means platform not filled
-                {
-                    allPlatformsOccupied = false;
-                }
-            }
-
-            if (allPlatformsOccupied && anyIncorrect)
-            {
-                DisplayAnswerFeedback(false);
-            }
-            else if (allPlatformsOccupied && !anyIncorrect)
-            {
-                CompletePuzzle(); // Centralized completion logic
-            }
+            yield return new WaitForSeconds(failureUIHideDelay);
+            questionText?.gameObject.SetActive(false);
         }
 
         public (string, string) GetRandomQuestion()
         {
-    
             int index = Random.Range(0, questions.Length);
             string question = questions[index];
             currentAnswer = answers[index];
@@ -280,7 +294,9 @@ namespace QandAPuzzle
             if (scoreText != null)
             {
                 scoreText.text = "Score: " + scoreManager.GetScore();
+                scoreText.gameObject.SetActive(true);
             }
         }
     }
 }
+
