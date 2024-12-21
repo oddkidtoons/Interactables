@@ -33,6 +33,7 @@ namespace QandAPuzzle
         public float resetDelay = 2f; // Delay before resetting the puzzle
 
         public PlatformSpawner platformSpawner;
+        public LetterSpawner letterSpawner; // Reference to the LetterSpawner
         public ScoreManager scoreManager;
         public PuzzleTrigger puzzleTrigger; // Reference to reset the trigger
 
@@ -131,6 +132,7 @@ namespace QandAPuzzle
 
             Debug.Log("Resetting the puzzle...");
             platformSpawner.SpawnedPlatforms.Clear(); // Clear platforms
+            letterSpawner?.DespawnLetters(); // Clear letters
             InitializeUI();
             ResetTimer();
 
@@ -161,7 +163,7 @@ namespace QandAPuzzle
 
         public void DisplayRandomQuestion()
         {
-            var (question, _) = GetRandomQuestion();
+            var (question, answer) = GetRandomQuestion();
 
             questionText?.gameObject.SetActive(true);
             questionText.text = question;
@@ -171,6 +173,12 @@ namespace QandAPuzzle
 
             completionText?.gameObject.SetActive(false);
             isPuzzleComplete = false;
+
+            // Trigger the platform spawner
+            platformSpawner.SpawnPlatforms(answer.Length, answer);
+
+            // Trigger the letter spawner
+            letterSpawner?.SpawnLetters(answer);
         }
 
         public void DisplayAnswerFeedback(bool isCorrect)
@@ -299,4 +307,3 @@ namespace QandAPuzzle
         }
     }
 }
-
