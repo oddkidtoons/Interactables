@@ -1,0 +1,192 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &3446020591387178362
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 541d99ac0b109456184e5c54fa8295e7,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 541d99ac0b109456184e5c54fa8295e7,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 541d99ac0b109456184e5c54fa8295e7,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 541d99ac0b109456184e5c54fa8295e7,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 541d99ac0b109456184e5c54fa8295e7,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 541d99ac0b109456184e5c54fa8295e7,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 541d99ac0b109456184e5c54fa8295e7,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 541d99ac0b109456184e5c54fa8295e7,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 541d99ac0b109456184e5c54fa8295e7,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 541d99ac0b109456184e5c54fa8295e7,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 541d99ac0b109456184e5c54fa8295e7,
+        type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 278216181ec2c467da4d6a8951de4991, type: 2}
+    - target: {fileID: 919132149155446097, guid: 541d99ac0b109456184e5c54fa8295e7,
+        type: 3}
+      propertyPath: m_Name
+      value: G
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 541d99ac0b109456184e5c54fa8295e7,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6586301691256988362}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 541d99ac0b109456184e5c54fa8295e7,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7235455019425000044}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 541d99ac0b109456184e5c54fa8295e7,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8782893822780508749}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 541d99ac0b109456184e5c54fa8295e7,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5633977112311176268}
+  m_SourcePrefab: {fileID: 100100000, guid: 541d99ac0b109456184e5c54fa8295e7, type: 3}
+--- !u!1 &2527593243145488427 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 541d99ac0b109456184e5c54fa8295e7,
+    type: 3}
+  m_PrefabInstance: {fileID: 3446020591387178362}
+  m_PrefabAsset: {fileID: 0}
+--- !u!54 &6586301691256988362
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2527593243145488427}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &7235455019425000044
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2527593243145488427}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05c781cfc0e9f422eaa4172e2b43a23f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  letter: 71
+  OnBeforeDestroy:
+    m_PersistentCalls:
+      m_Calls: []
+  destroyDelay: 0
+--- !u!64 &8782893822780508749
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2527593243145488427}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -669098342366724706, guid: 541d99ac0b109456184e5c54fa8295e7, type: 3}
+--- !u!114 &5633977112311176268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2527593243145488427}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62a9807b3ffef2c439c57e81650e28f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  offset: {x: 0, y: 0, z: 0}
+  releaseOffset: 0.5
+  autoRespawn: 0
+  respawnOnHitHazards: 0
+  respawnHeightLimit: -100
+  attackEnemies: 1
+  damage: 1
+  minDamageSpeed: 5
+  onPicked:
+    m_PersistentCalls:
+      m_Calls: []
+  onReleased:
+    m_PersistentCalls:
+      m_Calls: []
+  onRespawn:
+    m_PersistentCalls:
+      m_Calls: []
