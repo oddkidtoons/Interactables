@@ -2,7 +2,6 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.Events;
 using System.Collections.Generic;
-using System.Linq;
 
 public class OrbCollector : MonoBehaviour
 {
@@ -18,72 +17,79 @@ public class OrbCollector : MonoBehaviour
         public UnityEvent onAbilityLost;
         public string targetTag;
         public AudioClip collectSound;
-        public GameObject orbPrefab; 
+        public GameObject orbPrefab;
     }
 
-    public List<OrbType> orbTypes = new List<OrbType>(); 
+    public List<OrbType> orbTypes = new List<OrbType>();
+    public float orbDespawnTimer = 5f;
+    public float orbSpawnForce = 5f;
+    public Transform orbSpawnPoint;
 
-    private Dictionary<string, int> collectedOrbs = new Dictionary<string, int>();
-    private List<GameObject> spawnedOrbs = new List<GameObject>(); 
+    public UnityEvent onAllOrbsMaxed;
 
-    public float orbDespawnTimer = 5f; 
-    public float orbSpawnForce = 5f; 
-    public Transform orbSpawnPoint; 
+    public Dictionary<string, int> collectedOrbs { get; private set; } = new Dictionary<string, int>();
+    public Dictionary<string, OrbType> orbTypeLookup { get; private set; } = new Dictionary<string, OrbType>();
 
-    public UnityEvent onAllOrbsMaxed; 
+    private List<(GameObject orb, float spawnTime)> spawnedOrbs = new List<(GameObject, float)>();
+    private AudioSource audioSource;
 
     void Start()
     {
+        audioSource = gameObject.AddComponent<AudioSource>();
+
         foreach (OrbType orbType in orbTypes)
         {
-            collectedOrbs.Add(orbType.orbName, 0);
+            collectedOrbs[orbType.orbName] = 0;
+            orbTypeLookup[orbType.targetTag] = orbType; // Create lookup by targetTag for faster matching
             UpdateUIText(orbType.orbName);
         }
     }
 
-    void OnTriggerEnter(Collider other)
+    private void OnTriggerEnter(Collider other)
     {
-        foreach (OrbType orbType in orbTypes)
+        // Check if the collided object matches any orb's target tag
+        if (orbTypeLookup.TryGetValue(other.tag, out OrbType orbType))
         {
-            if (other.gameObject.CompareTag(orbType.targetTag))
+            // Update the collected count
+            collectedOrbs[orbType.orbName]++;
+            Destroy(other.gameObject); // Destroy the orb object
+
+            // Play the collection sound
+            PlayOrbSound(orbType.collectSound);
+
+            // Trigger the appropriate UnityEvents
+            if (collectedOrbs[orbType.orbName] >= orbType.requiredCount)
             {
-                collectedOrbs[orbType.orbName]++;
-                Destroy(other.gameObject); 
+                orbType.onAbilityGained.Invoke();
+            }
+            if (collectedOrbs[orbType.orbName] >= orbType.subGoalCount && orbType.subGoalCount > 0)
+            {
+                orbType.onAbilitySubGained.Invoke();
+            }
 
-                // Play collect sound
-                if (orbType.collectSound != null)
-                {
-                    AudioSource.PlayClipAtPoint(orbType.collectSound, transform.position); 
-                }
+            // Update the UI text
+            UpdateUIText(orbType.orbName);
 
-                if (collectedOrbs[orbType.orbName] >= orbType.requiredCount)
-                {
-                    orbType.onAbilityGained.Invoke();
-                }
-
-                if (collectedOrbs[orbType.orbName] >= orbType.subGoalCount && orbType.subGoalCount > 0) 
-                {
-                    orbType.onAbilitySubGained.Invoke();
-                }
-
-                UpdateUIText(orbType.orbName); 
-
-                // Check if ALL orbs are at max
-                if (orbTypes.All(orb => collectedOrbs[orb.orbName] >= orb.requiredCount))
-                {
-                    onAllOrbsMaxed.Invoke();
-                }
-
-                break; // Exit the loop after finding the matching OrbType
+            // Check if all orb types are maxed
+            if (AllOrbsMaxed())
+            {
+                onAllOrbsMaxed.Invoke();
             }
         }
     }
 
-    private Dictionary<GameObject, float> orbSpawnTimes = new Dictionary<GameObject, float>();
-
-public void LoseOrbs(int maxOrbsToLose)
+    public void LoseOrbs(int maxOrbsToLose)
 {
-    int orbsToLose = Random.Range(1, Mathf.Min(maxOrbsToLose, collectedOrbs.Values.Sum()));
+    int totalOrbs = TotalCollectedOrbs();
+
+    // Prevent crash if there are no orbs to lose
+    if (totalOrbs == 0)
+    {
+        Debug.LogWarning("No orbs to lose!");
+        return;
+    }
+
+    int orbsToLose = Random.Range(1, Mathf.Min(maxOrbsToLose, totalOrbs) + 1); // Added +1 to include the max in the range
 
     while (orbsToLose > 0)
     {
@@ -102,16 +108,7 @@ public void LoseOrbs(int maxOrbsToLose)
 
             if (orbType.orbPrefab != null)
             {
-                Vector3 spawnPosition = orbSpawnPoint != null ? orbSpawnPoint.position : transform.position;
-                Vector3 forceDirection = Random.insideUnitSphere;
-                forceDirection.y = Mathf.Abs(forceDirection.y);
-
-                GameObject spawnedOrb = Instantiate(orbType.orbPrefab, spawnPosition, Quaternion.identity);
-                orbSpawnTimes[spawnedOrb] = Time.time;
-                spawnedOrb.GetComponent<Rigidbody>().AddForce(forceDirection * orbSpawnForce, ForceMode.Impulse);
-                spawnedOrbs.Add(spawnedOrb);
-
-                Debug.Log($"Orb {orbType.orbName} spawned successfully at {spawnPosition}!");
+                SpawnLostOrb(orbType);
             }
 
             UpdateUIText(orbType.orbName);
@@ -119,32 +116,73 @@ public void LoseOrbs(int maxOrbsToLose)
     }
 }
 
-void Update()
-{
-    foreach (var orb in spawnedOrbs.ToList())
-    {
-        if (orb != null && Time.time - orbSpawnTimes[orb] > orbDespawnTimer)
-        {
-            Destroy(orb);
-            orbSpawnTimes.Remove(orb);
-            spawnedOrbs.Remove(orb);
-        }
-    }
-}
 
-
-    void UpdateUIText(string orbName) 
+    public void UpdateUIText(string orbName)
     {
-        foreach (OrbType orbType in orbTypes)
+        foreach (var orbType in orbTypes)
         {
-            if (orbType.orbName == orbName)
+            if (orbType.orbName == orbName && orbType.uiText != null)
             {
-                if (orbType.uiText != null)
-                {
-                    orbType.uiText.text = $"{orbType.orbName}: {collectedOrbs[orbType.orbName]} / {orbType.requiredCount}"; 
-                }
+                orbType.uiText.text = $"{orbType.orbName}: {collectedOrbs[orbName]} / {orbType.requiredCount}";
                 break;
             }
         }
     }
+    void Update()
+    {
+        for (int i = spawnedOrbs.Count - 1; i >= 0; i--)
+        {
+            var (orb, spawnTime) = spawnedOrbs[i];
+            if (orb != null && Time.time - spawnTime > orbDespawnTimer)
+            {
+                Destroy(orb);
+                spawnedOrbs.RemoveAt(i);
+            }
+        }
+    }
+
+     private void SpawnLostOrb(OrbType orbType)
+    {
+        Vector3 spawnPosition = orbSpawnPoint != null ? orbSpawnPoint.position : transform.position;
+        Vector3 forceDirection = new Vector3(
+            Random.Range(-1f, 1f),
+            Random.Range(0.5f, 1f),
+            Random.Range(-1f, 1f)
+        ).normalized;
+
+        GameObject spawnedOrb = Instantiate(orbType.orbPrefab, spawnPosition, Quaternion.identity);
+        spawnedOrb.GetComponent<Rigidbody>().AddForce(forceDirection * orbSpawnForce, ForceMode.Impulse);
+
+        spawnedOrbs.Add((spawnedOrb, Time.time));
+    }
+
+
+    public bool AllOrbsMaxed()
+    {
+        foreach (var orbType in orbTypes)
+        {
+            if (collectedOrbs[orbType.orbName] < orbType.requiredCount)
+                return false;
+        }
+        return true;
+    }
+
+    private int TotalCollectedOrbs()
+    {
+        int total = 0;
+        foreach (var count in collectedOrbs.Values)
+        {
+            total += count;
+        }
+        return total;
+    }
+
+    private void PlayOrbSound(AudioClip clip)
+    {
+        if (clip != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
+    }
 }
+
